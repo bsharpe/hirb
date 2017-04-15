@@ -25,15 +25,15 @@ class Hirb::Helpers::Table
     # Simple algorithm which allows smaller fields to be displayed while
     # restricting longer fields to an average_long_field
     def adjust_long_fields
-      while (total_length = @field_lengths.values.sum) > @width
-        average_field = (total_length / @field_size.to_f).to_f.floor
+      while (total_length = sum(@field_lengths.values)) > @width
+        average_field = total_length / @field_size.to_f
         long_lengths = @field_lengths.values.select {|e| e > average_field }
         return false if long_lengths.empty?
 
         # adjusts average long field by ratio with @width
-        average_long_field = ((long_lengths.sum / long_lengths.size) * (@width / total_length)).to_f.floor
+        average_long_field = ((sum(long_lengths) / long_lengths.size) * (@width / total_length).to_f).to_f
         @field_lengths.each do |f,length|
-          @field_lengths[f] = average_long_field if length > average_long_field
+          @field_lengths[f] = average_long_field.floor if length > average_long_field
         end
       end
       true
@@ -47,7 +47,7 @@ class Hirb::Helpers::Table
         t[k] = (v / original_total_length.to_f * @width).to_i; t  }
 
       # set all fields the same if relative doesn't work
-      unless new_lengths.values.all? {|e| e > MIN_FIELD_LENGTH} && (new_lengths.values.sum <= @width)
+      unless new_lengths.values.all? {|e| e > MIN_FIELD_LENGTH} && (sum(new_lengths.values) <= @width)
         new_lengths = @field_lengths.inject({}) {|t,(k,_v)| t[k] = @width / @field_size; t }
       end
       @field_lengths.each {|k,v| @field_lengths[k] = new_lengths[k] }
@@ -55,7 +55,7 @@ class Hirb::Helpers::Table
 
     def add_extra_width
       added_width = 0
-      extra_width = @width - @field_lengths.values.sum
+      extra_width = @width - sum(@field_lengths.values)
       unmaxed_fields = @field_lengths.keys.select {|f| !remaining_width(f).zero? }
       # order can affect which one gets the remainder so let's keep it consistent
       unmaxed_fields = unmaxed_fields.sort_by {|e| e.to_s}
@@ -74,6 +74,9 @@ class Hirb::Helpers::Table
       end
     end
 
+    def sum(arr)
+      arr.inject {|t,e| t += e } || 0
+    end
     #:startdoc:
   end
 end
