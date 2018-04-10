@@ -96,6 +96,7 @@ module Hirb
     # ancestors to the most recent ones.
     def klass_config(output_class)
       @klass_config[output_class] ||= build_klass_config(output_class)
+      @klass_config[output_class]
     end
 
     def build_klass_config(output_class)

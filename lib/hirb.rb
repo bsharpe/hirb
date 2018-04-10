@@ -76,6 +76,7 @@ module Hirb
         @config = config_files.inject({}) {|acc,e|
           Util.recursive_hash_merge(acc,read_config_file(e))
         }
+        @config = @config.with_indifferent_access
       end
       @config
     end

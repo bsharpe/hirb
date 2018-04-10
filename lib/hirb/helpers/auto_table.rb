@@ -19,6 +19,16 @@ class Hirb::Helpers::AutoTable < Hirb::Helpers::Table
     klass = options.delete(:table_class) || (
       !(output[0].is_a?(Hash) || output[0].is_a?(Array)) ?
       Hirb::Helpers::ObjectTable : Hirb::Helpers::Table)
+
+    # SuperHACK to globally remove columns from Hirb output
+    if Hirb.config[:output] || Hirb.config[:output][:all]
+      if Hirb.config[:output][:all][:hidden]
+        Hirb.config[:output][:all][:hidden].map(&:to_sym).each do |key|
+          options[:fields].delete(key)
+        end
+      end
+    end
+
     klass.render(output, options)
   end
 end
