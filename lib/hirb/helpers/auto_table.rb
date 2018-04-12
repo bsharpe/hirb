@@ -18,17 +18,28 @@ class Hirb::Helpers::AutoTable < Hirb::Helpers::Table
     (defaults = dynamic_options(output[0])) && (options = defaults.merge(options))
     klass = options.delete(:table_class) || (
       !(output[0].is_a?(Hash) || output[0].is_a?(Array)) ?
-      Hirb::Helpers::ObjectTable : Hirb::Helpers::Table)
+        Hirb::Helpers::ObjectTable : Hirb::Helpers::Table)
+    options = remove_hidden_fields(output[0].class, options)
 
+    klass.render(output, options)
+  end
+
+  def self.remove_hidden_fields(klass, options)
     # SuperHACK to globally remove columns from Hirb output
-    if Hirb.config[:output] || Hirb.config[:output][:all]
+    if Hirb.config[:output] && Hirb.config[:output][:all]
       if Hirb.config[:output][:all][:hidden]
         Hirb.config[:output][:all][:hidden].map(&:to_sym).each do |key|
           options[:fields].delete(key)
         end
       end
     end
-
-    klass.render(output, options)
+    if Hirb.config[:output] && Hirb.config[:output][klass.name]
+      if Hirb.config[:output][klass.name][:hidden]
+        Hirb.config[:output][klass.name][:hidden].map(&:to_sym).each do |key|
+          options[:fields].delete(key)
+        end
+      end
+    end
+    options
   end
 end
