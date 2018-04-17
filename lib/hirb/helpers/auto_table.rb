@@ -20,8 +20,20 @@ class Hirb::Helpers::AutoTable < Hirb::Helpers::Table
       !(output[0].is_a?(Hash) || output[0].is_a?(Array)) ?
         Hirb::Helpers::ObjectTable : Hirb::Helpers::Table)
     options = remove_hidden_fields(output[0].class, options)
+    options = ensure_shown_fields(output[0].class, options)
 
     klass.render(output, options)
+  end
+
+  def self.ensure_shown_fields(klass, options)
+    # ap Hirb.config[:output][klass.name]
+    if Hirb.config[:output] && Hirb.config[:output][klass.name]
+      if Hirb.config[:output][klass.name][:fields]
+        only_show = Hirb.config[:output][klass.name][:fields].map(&:to_sym)
+        options[:fields] &= only_show
+      end
+    end
+    options
   end
 
   def self.remove_hidden_fields(klass, options)
